@@ -1,0 +1,54 @@
+-- Combined sales data
+SELECT *
+FROM sales_won AS won
+INNER JOIN sales_teams AS teams
+    ON won.sales_agent = teams.sales_agent;
+    
+-- Overall profit from each regional office
+SELECT regional_office, SUM(close_value) AS total_profit
+FROM (
+    SELECT regional_office, won.sales_agent, product, account, close_date, close_value
+    FROM sales_won AS won
+    INNER JOIN sales_teams AS teams
+        ON won.sales_agent = teams.sales_agent
+) AS sales_data
+GROUP BY regional_office
+ORDER BY total_profit DESC;
+
+-- Total profit per sales agent
+SELECT sales_agent, SUM(close_value) AS total_profit
+FROM (
+    SELECT regional_office, won.sales_agent, product, account, close_date, close_value
+    FROM sales_won AS won
+    INNER JOIN sales_teams AS teams
+        ON won.sales_agent = teams.sales_agent
+) AS sales_data
+GROUP BY sales_agent
+ORDER BY total_profit DESC;
+
+-- Total profit of each product
+SELECT product, SUM(close_value) AS total_profit
+FROM (
+    SELECT regional_office, won.sales_agent, product, account, close_date, close_value
+    FROM sales_won AS won
+    INNER JOIN sales_teams AS teams
+        ON won.sales_agent = teams.sales_agent
+) AS sales_data
+GROUP BY product
+ORDER BY total_profit DESC;
+
+-- Total profit of each month of each regional office
+SELECT 
+    sales_data.regional_office,
+    MONTH(STR_TO_DATE(sales_data.close_date, '%m/%d/%Y')) AS month,
+    SUM(sales_data.close_value) AS total_profit
+FROM (
+    SELECT regional_office, won.sales_agent, product, account, close_date, close_value
+    FROM sales_won AS won
+    INNER JOIN sales_teams AS teams
+        ON won.sales_agent = teams.sales_agent
+) AS sales_data
+GROUP BY 
+    sales_data.regional_office, 
+    MONTH(STR_TO_DATE(sales_data.close_date, '%m/%d/%Y'))  -- Group by extracted month expression
+ORDER BY sales_data.regional_office, month;
